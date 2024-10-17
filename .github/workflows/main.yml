@@ -32,11 +32,11 @@ jobs:
         run: docker-compose up -d
 
       # (Optional) Run your backend tests (for Node.js backend)
-      - name: Run backend tests
+      - name: Run back-end tests
         run: docker-compose run backend npm test
 
       # (Optional) Run frontend tests (for React)
-      - name: Run frontend tests
+      - name: Run front-end tests
         run: docker-compose run frontend npm test
 
       # Tear down the Docker services after tests
