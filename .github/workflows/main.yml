@@ -33,11 +33,11 @@ jobs:
 
       # (Optional) Run your backend tests (for Node.js backend)
       - name: Run back-end tests
-        run: docker-compose run backend npm test
+        run: docker-compose run back-end npm test
 
       # (Optional) Run frontend tests (for React)
       - name: Run front-end tests
-        run: docker-compose run frontend npm test
+        run: docker-compose run front-end npm test
 
       # Tear down the Docker services after tests
       - name: Tear down Docker services
