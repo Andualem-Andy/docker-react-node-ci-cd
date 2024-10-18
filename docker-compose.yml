@@ -2,28 +2,25 @@ version: '3.8'
 
 services:
   backend:
-    build:
-      context: ./node  # Specify the path relative to the docker-compose file
+    build: 
+      context: node
     container_name: backend
     working_dir: /usr/src/app
-    networks:
+    networks: 
       - node-network
-    volumes:
-      - ./node:/usr/src/app
-      - node_modules:/usr/src/app/node_modules  # Use named volume
     tty: true
-    ports:
+    ports: 
       - "3000:3000"
     command: npm run start
     depends_on:
       db:
-        condition: service_healthy  # Wait for db to be healthy
+        condition: service_healthy
     environment:
-      DB_USER: ${DB_USER}
-      DB_HOST: db
-      DB_NAME: ${DB_NAME}
-      DB_PASSWORD: ${DB_PASSWORD}
-      DB_PORT: 5432
+      - DB_USER=${DB_USER}  # Use .env file for sensitive data
+      - DB_HOST=db
+      - DB_NAME=${DB_NAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_PORT=5432
     healthcheck:  # Health check for the backend service
       test: ["CMD", "curl", "-f", "http://localhost:3000/"]  # Adjust based on your API endpoint
       interval: 10s
@@ -31,59 +28,55 @@ services:
       retries: 5
 
   frontend:
-    build:
-      context: ./react  # Specify the path relative to the docker-compose file
+    build: 
+      context: react
     container_name: frontend
     working_dir: /usr/src/app
-    networks:
+    networks: 
       - node-network
-    volumes:
-      - ./react:/usr/src/app
-      - node_modules:/usr/src/app/node_modules  # Use named volume
     tty: true
-    ports:
+    ports: 
       - "5173:5173"
     command: npm run dev
 
   db:
-    image: postgres:17  # Specify a version
+    image: postgres:17 # Specify a version
     container_name: db
     restart: always
     tty: true
     volumes:
-      - postgres_data:/var/lib/postgresql/data  # Use named volume for data persistence
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: ${DB_PASSWORD}  # Use .env file for sensitive data
-      POSTGRES_DB: postgres
-    ports:
+      - ./data:/var/lib/postgresql/data
+    environment: 
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=${DB_PASSWORD}  # Use .env file for sensitive data
+      - POSTGRES_DB=postgres
+    ports: 
       - "5432:5432"
-    networks:
+    networks: 
       - node-network
-    healthcheck:  # Adding healthcheck for the database
+    healthcheck: # Adding healthcheck for the database
       test: ["CMD", "pg_isready", "-U", "postgres"]
       interval: 30s
       timeout: 15s
       retries: 15
 
   nginx:
-    build:
-      context: ./nginx  # Specify the path relative to the docker-compose file
+    build: 
+      context: nginx
     container_name: nginx
     restart: always
     tty: true
-    ports:
+    ports: 
       - "8000:80"
-    networks:
+    networks: 
       - node-network
     depends_on:
       - backend
       - frontend
 
-networks:
+networks: 
   node-network:
     driver: bridge
 
-volumes:  # Define named volumes
+volumes: # Define named volumes
   node_modules: {}
-  postgres_data: {}  # Separate volume for PostgreSQL data
