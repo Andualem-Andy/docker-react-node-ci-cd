@@ -1,3 +1,5 @@
+version: '3.8'  # Keep the version declaration if using Docker Compose version 1.27.0+
+
 services:
   back-end:
     build:
@@ -9,7 +11,7 @@ services:
       - start
     container_name: back-end
     depends_on:
-      db:  # Keep this line, but remove 'required'
+      - db  # Simply list the service name
     networks:
       - node-network
     ports:
@@ -23,18 +25,18 @@ services:
   db:
     container_name: postgres_container
     environment:
-      POSTGRES_DB: postgres_container  # Set the database name here
+      POSTGRES_DB: postgres_container
       POSTGRES_PASSWORD: "1234"
       POSTGRES_USER: postgres
     image: postgres:13
     networks:
       - node-network
     ports:
-      - "5432:5432"  # Correctly map ports
+      - "5432:5432"
     restart: always
     tty: true
     volumes:
-      - pgdata:/var/lib/postgresql/data  # Use the named volume here
+      - pgdata:/var/lib/postgresql/data
 
   front-end:
     build:
@@ -45,6 +47,8 @@ services:
       - run
       - dev
     container_name: front-end
+    depends_on:
+      - back-end  # Simply list the service name
     networks:
       - node-network
     ports:
@@ -61,8 +65,8 @@ services:
       dockerfile: Dockerfile
     container_name: nginx
     depends_on:
-      back-end:  # Keep this line, but remove 'required'
-      front-end:  # Keep this line, but remove 'required'
+      - back-end  # Simply list the service name
+      - front-end  # Simply list the service name
     networks:
       - node-network
     ports:
@@ -75,4 +79,4 @@ networks:
     driver: bridge
 
 volumes:
-  pgdata:  # Define the named volume for PostgreSQL data storage
+  pgdata:  # Named volume for PostgreSQL data storage
