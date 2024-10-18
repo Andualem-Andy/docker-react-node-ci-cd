@@ -15,7 +15,7 @@ services:
     networks:
       - node-network
     ports:
-      - "3000:3000"
+      - "3000:3000"  # Ensure this is a valid port mapping
     tty: true
     volumes:
       - ./node:/usr/src/app
@@ -23,15 +23,15 @@ services:
     working_dir: /usr/src/app
 
   db:
-    image: ${DB_IMAGE}
-    container_name: ${DB_CONTAINER_NAME}
-    restart: ${DB_RESTART}
+    image: ${DB_IMAGE}  # Use the environment variable defined in .env
+    container_name: ${DB_CONTAINER_NAME}  # Use the environment variable defined in .env
+    restart: ${DB_RESTART}  # Use the environment variable defined in .env
     environment:
-      POSTGRES_USER: ${DB_USER}
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_USER: ${DB_USER}  # Use the environment variable defined in .env
+      POSTGRES_PASSWORD: ${DB_PASSWORD}  # Use the environment variable defined in .env
       POSTGRES_DB: postgres_container
     ports:
-      - "${DB_PORT}:5432"
+      - "${DB_PORT}:5432"  # Use the environment variable defined in .env
     volumes:
       - pgdata:/var/lib/postgresql/data
 
@@ -49,7 +49,7 @@ services:
     networks:
       - node-network
     ports:
-      - "5173:5173"
+      - "5173:5173"  # Ensure this is a valid port mapping
     tty: true
     volumes:
       - ./react:/usr/src/app
@@ -67,7 +67,7 @@ services:
     networks:
       - node-network
     ports:
-      - "8000:80"
+      - "8000:80"  # Ensure this is a valid port mapping
     restart: always
     tty: true
 
