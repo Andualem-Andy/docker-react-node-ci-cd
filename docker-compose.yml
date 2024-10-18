@@ -22,7 +22,7 @@ services:
       - /usr/src/app/node_modules
     working_dir: /usr/src/app
 
-    db:
+  db:
     image: ${DB_IMAGE}
     container_name: ${DB_CONTAINER_NAME}
     restart: ${DB_RESTART}
