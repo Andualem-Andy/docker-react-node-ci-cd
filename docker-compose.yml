@@ -22,19 +22,16 @@ services:
       - /usr/src/app/node_modules
     working_dir: /usr/src/app
 
-  db:
-    container_name: postgres_container
+    db:
+    image: ${DB_IMAGE}
+    container_name: ${DB_CONTAINER_NAME}
+    restart: ${DB_RESTART}
     environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
       POSTGRES_DB: postgres_container
-      POSTGRES_PASSWORD: "1234"
-      POSTGRES_USER: postgres
-    image: postgres:13
-    networks:
-      - node-network
     ports:
-      - "5432:5432"
-    restart: always
-    tty: true
+      - "${DB_PORT}:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
 
