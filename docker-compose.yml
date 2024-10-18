@@ -10,6 +10,7 @@ services:
       - node-network
     volumes: 
       - ./node:/usr/src/app
+      - /usr/src/app/node_modules
     tty: true
     ports: 
       - "3000:3000"
@@ -26,31 +27,27 @@ services:
       - node-network
     volumes: 
       - ./react:/usr/src/app
+      - /usr/src/app/node_modules
     tty: true
     ports: 
       - "5173:5173"
     command: npm run dev
 
   db:
-    image: postgres:13
-    container_name: postgres_container
-    restart: always
+    image: ${DB_IMAGE}
+    container_name: ${DB_CONTAINER_NAME}
+    restart: ${DB_RESTART}
     tty: true
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: 1234
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
       POSTGRES_DB: postgres_container
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      - ${DB_VOLUME}
     ports: 
-      - "5432:5432"
+      - "${DB_PORT}:5432"
     networks: 
       - node-network
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
 
   nginx:
     build: 
