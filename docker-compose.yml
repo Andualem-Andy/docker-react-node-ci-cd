@@ -34,18 +34,18 @@ services:
     command: npm run dev
 
   db:
-    image: ${DB_IMAGE}  # Use the image defined in the .env file
-    container_name: ${DB_CONTAINER_NAME}  # Use the container name defined in the .env file
-    restart: ${DB_RESTART}  # Use the restart policy defined in the .env file
+    image: ${DB_IMAGE}  # Use the variable from .env
+    container_name: ${DB_CONTAINER_NAME}  # Use the variable from .env
+    restart: ${DB_RESTART}  # Use the variable from .env
     tty: true
     environment:
-      POSTGRES_USER: ${DB_USER}  # Use the user defined in the .env file
-      POSTGRES_PASSWORD: ${DB_PASSWORD}  # Use the password defined in the .env file
-      POSTGRES_DB: ${DB_VOLUME}  # This can be adjusted based on your requirement
+      POSTGRES_USER: ${DB_USER}  # Use the variable from .env
+      POSTGRES_PASSWORD: ${DB_PASSWORD}  # Use the variable from .env
+      POSTGRES_DB: ${DB_VOLUME}  # Use the variable from .env
     volumes:
-      - pgdata:/var/lib/postgresql/data  # Use named volume for PostgreSQL data storage
+      - ${DB_VOLUME}:/var/lib/postgresql/data  # Use named volume from .env
     ports: 
-      - "${DB_PORT}:5432"  # Map the defined port from the .env file
+      - "${DB_PORT}:5432"  # Use the variable from .env
     networks: 
       - node-network
 
@@ -62,10 +62,10 @@ services:
     depends_on:
       - back-end
       - front-end
-  
+
 networks: 
   node-network:
     driver: bridge
 
 volumes:
-  pgdata: {}  # Define the named volume for PostgreSQL data storage
+  pgdata: {}  # Use named volume for PostgreSQL data storage
