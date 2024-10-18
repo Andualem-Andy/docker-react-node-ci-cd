@@ -1,79 +1,83 @@
-version: '3.8'  # Keep the version declaration if using Docker Compose version 1.27.0+
+version: '3.8'
 
 services:
-  back-end:
-    build:
-      context: ./node
-      dockerfile: Dockerfile
-    command:
-      - npm
-      - run
-      - start
-    container_name: back-end
-    depends_on:
-      - db  # Simply list the service name
-    networks:
-      - node-network
-    ports:
-      - "3000:3000"  # Ensure this is a valid port mapping
-    tty: true
-    volumes:
-      - ./node:/usr/src/app
-      - /usr/src/app/node_modules
+  backend:
+    build: 
+      context: node
+    container_name: backend
     working_dir: /usr/src/app
+    networks: 
+      - node-network
+    volumes: 
+      - ./node:/usr/src/app
+      - node_modules:/usr/src/app/node_modules # Use named volume
+    tty: true
+    ports: 
+      - "3000:3000"
+    command: npm run start
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      - DB_USER=postgres
+      - DB_HOST=db
+      - DB_NAME=postgres
+      - DB_PASSWORD=1234
+      - DB_PORT=5432
+
+  frontend:
+    build: 
+      context: react
+    container_name: frontend
+    working_dir: /usr/src/app
+    networks: 
+      - node-network
+    volumes: 
+      - ./react:/usr/src/app
+      - node_modules:/usr/src/app/node_modules # Use named volume
+    tty: true
+    ports: 
+      - "5173:5173"
+    command: npm run dev
 
   db:
-    image: ${DB_IMAGE}  # Use the environment variable defined in .env
-    container_name: ${DB_CONTAINER_NAME}  # Use the environment variable defined in .env
-    restart: ${DB_RESTART}  # Use the environment variable defined in .env
-    environment:
-      POSTGRES_USER: ${DB_USER}  # Use the environment variable defined in .env
-      POSTGRES_PASSWORD: ${DB_PASSWORD}  # Use the environment variable defined in .env
-      POSTGRES_DB: postgres_container
-    ports:
-      - "${DB_PORT}:5432"  # Use the environment variable defined in .env
-    volumes:
-      - pgdata:/var/lib/postgresql/data
-
-  front-end:
-    build:
-      context: ./react
-      dockerfile: Dockerfile
-    command:
-      - npm
-      - run
-      - dev
-    container_name: front-end
-    depends_on:
-      - back-end  # Simply list the service name
-    networks:
-      - node-network
-    ports:
-      - "5173:5173"  # Ensure this is a valid port mapping
-    tty: true
-    volumes:
-      - ./react:/usr/src/app
-      - /usr/src/app/node_modules
-    working_dir: /usr/src/app
-
-  nginx:
-    build:
-      context: ./nginx
-      dockerfile: Dockerfile
-    container_name: nginx
-    depends_on:
-      - back-end  # Simply list the service name
-      - front-end  # Simply list the service name
-    networks:
-      - node-network
-    ports:
-      - "8000:80"  # Ensure this is a valid port mapping
+    image: postgres:17 # Specify a version
+    container_name: db
     restart: always
     tty: true
+    volumes:
+      - ./data:/var/lib/postgresql/data
+    environment: 
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=1234
+      - POSTGRES_DB=postgres
+    ports: 
+      - "5432:5432"
+    networks: 
+      - node-network
+    healthcheck: # Adding healthcheck for the database
+      test: ["CMD", "pg_isready", "-U", "postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
-networks:
+  nginx:
+    build: 
+      context: nginx
+    container_name: nginx
+    restart: always
+    tty: true
+    ports: 
+      - "8000:80"
+    networks: 
+      - node-network
+    depends_on:
+      - backend
+      - frontend
+
+networks: 
   node-network:
     driver: bridge
 
-volumes:
-  pgdata:  # Named volume for PostgreSQL data storage
+volumes: # Define named volumes
+  node_modules:

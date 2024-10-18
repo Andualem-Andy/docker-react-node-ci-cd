@@ -1,33 +1,23 @@
-name: CI for Dockerized App
+name: CI/CD for Dockerized App
 
 on:
   push:
-    branches: [ development ]
+    branches: [development]
 
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
 
     steps:
-      # Checkout code from the repository
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      # Set up Docker Buildx (for advanced Docker builds)
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
-      # Set up Docker Compose
-      - name: Set up Docker Compose
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y docker-compose
-
-      # Build and run the services using docker-compose
       - name: Build and run services
         run: docker-compose -f docker-compose.yml up --build -d
 
-      # Wait for PostgreSQL to be healthy
       - name: Wait for PostgreSQL
         run: |
           until docker-compose exec -T db pg_isready -U ${DB_USER}; do
@@ -35,18 +25,44 @@ jobs:
             sleep 5
           done
 
-      # Run backend tests (Node.js)
       - name: Run backend tests
         run: docker-compose run back-end npm test
 
-      # Run frontend tests (React)
       - name: Run frontend tests
         run: docker-compose run front-end npm test
 
-      # Tear down the Docker services after tests
       - name: Tear down Docker services
         run: docker-compose down
 
-      # Remove Docker volumes (clean up)
       - name: Remove Docker volumes
         run: docker-compose down --volumes
+
+      - name: Send Notification Email
+        env:
+          SENDGRID_API_KEY: ${{ secrets.SENDGRID_API_KEY }}
+        run: |
+          curl --request POST \
+          --url https://api.sendgrid.com/v3/mail/send \
+          --header 'Authorization: Bearer '${SENDGRID_API_KEY} \
+          --header 'Content-Type: application/json' \
+          --data '{
+            "personalizations": [
+              {
+                "to": [
+                  {
+                    "email": "andualemasamenew5@gmail.com"
+                  }
+                ],
+                "subject": "CI/CD Pipeline Notification"
+              }
+            ],
+            "from": {
+              "email": ""email": "andualemasamenew5@gmail.com"  # Replace with your SendGrid verified sender email
+            },
+            "content": [
+              {
+                "type": "text/plain",
+                "value": "Your CI/CD pipeline has completed successfully!"
+              }
+            ]
+          }'
