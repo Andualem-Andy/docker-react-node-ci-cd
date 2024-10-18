@@ -13,32 +13,40 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      # Set up Docker Buildx (required for advanced Docker builds)
+      # Set up Docker Buildx (for advanced Docker builds)
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
-      # Install Docker Compose
-      - name: Install Docker Compose
+      # Set up Docker Compose
+      - name: Set up Docker Compose
         run: |
           sudo apt-get update
           sudo apt-get install -y docker-compose
 
-      # Build Docker images using docker-compose
-      - name: Build Docker images
-        run: docker-compose -f docker-compose.yml build
+      # Build and run the services using docker-compose
+      - name: Build and run services
+        run: docker-compose -f docker-compose.yml up --build -d
 
-      # Run the services in the background using Docker Compose
-      - name: Run services using Docker Compose
-        run: docker-compose up -d
+      # Wait for PostgreSQL to be healthy
+      - name: Wait for PostgreSQL
+        run: |
+          until docker-compose exec -T db pg_isready -U ${DB_USER}; do
+            echo "Waiting for Postgres to be ready..."
+            sleep 5
+          done
 
-      # (Optional) Run your backend tests (for Node.js backend)
-      - name: Run back-end tests
+      # Run backend tests (Node.js)
+      - name: Run backend tests
         run: docker-compose run back-end npm test
 
-      # (Optional) Run frontend tests (for React)
-      - name: Run front-end tests
+      # Run frontend tests (React)
+      - name: Run frontend tests
         run: docker-compose run front-end npm test
 
       # Tear down the Docker services after tests
       - name: Tear down Docker services
         run: docker-compose down
+
+      # Remove Docker volumes (clean up)
+      - name: Remove Docker volumes
+        run: docker-compose down --volumes

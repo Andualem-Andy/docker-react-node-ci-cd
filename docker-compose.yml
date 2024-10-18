@@ -1,4 +1,4 @@
-version: '3.8'  # Use a more recent version if possible
+version: '3.8' # Specify the version of Docker Compose
 
 services: 
 
@@ -15,9 +15,11 @@ services:
     tty: true
     ports: 
       - "3000:3000"
+    environment:
+      - DATABASE_URL=postgresql://postgres:${DB_PASSWORD}@db:${DB_PORT}/${DB_NAME}
     command: npm run start
     depends_on:
-       - db
+      - db
 
   front-end:
     build: 
@@ -33,20 +35,28 @@ services:
     ports: 
       - "5173:5173"
     command: npm run dev
+    depends_on:
+      - back-end
 
   db:
-    image: postgres
-    container_name: db
+    image: postgres:13  # Using a specific Postgres image
+    container_name: postgres-db
     restart: always
-    tty: true
-    volumes:
-      - ./data:/var/lib/postgresql/data
     environment: 
-      - POSTGRES_PASSWORD=1234
+      - POSTGRES_DB=${DB_NAME}
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data  # Named volume for persistence
     ports: 
       - "5432:5432"
     networks: 
       - node-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   nginx:
     build: 
@@ -59,9 +69,12 @@ services:
     networks: 
       - node-network
     depends_on:
-       - back-end
-       - front-end
+      - front-end
+      - back-end
   
 networks: 
   node-network:
     driver: bridge
+
+volumes:
+  postgres_data:
