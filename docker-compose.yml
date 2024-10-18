@@ -19,11 +19,16 @@ services:
       db:
         condition: service_healthy
     environment:
-      - DB_USER=postgres
+      - DB_USER=${DB_USER}  # Use .env file for sensitive data
       - DB_HOST=db
-      - DB_NAME=postgres
-      - DB_PASSWORD=1234
+      - DB_NAME=${DB_NAME}
+      - DB_PASSWORD=${DB_PASSWORD}
       - DB_PORT=5432
+    healthcheck:  # Health check for the backend service
+      test: ["CMD", "curl", "-f", "http://localhost:3000/"]  # Adjust based on your API endpoint
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   frontend:
     build: 
@@ -49,7 +54,7 @@ services:
       - ./data:/var/lib/postgresql/data
     environment: 
       - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=1234
+      - POSTGRES_PASSWORD=${DB_PASSWORD}  # Use .env file for sensitive data
       - POSTGRES_DB=postgres
     ports: 
       - "5432:5432"
@@ -80,4 +85,4 @@ networks:
     driver: bridge
 
 volumes: # Define named volumes
-  node_modules:
+  node_modules: {}
