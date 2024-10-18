@@ -1,5 +1,5 @@
-const express = require('express');
-const { Pool } = require('pg');
+import express from 'express';  // Use import instead of require
+import { Pool } from 'pg';      // Use import instead of require
 
 const app = express();
 const port = 3000;
@@ -9,7 +9,12 @@ app.use(express.json());
 
 // Initialize PostgreSQL client
 const pool = new Pool({
-  // Your database configuration here
+  // Your database configuration here (provide necessary connection details)
+  user: process.env.DB_USER,
+  host: 'db', // Assuming 'db' is the service name for your database container
+  database: process.env.DB_NAME, // Replace with your database name
+  password: process.env.DB_PASSWORD,
+  port: process.env.DB_PORT,
 });
 
 // Endpoint to create a table (ensure it is only called once or in a setup script)
@@ -61,5 +66,5 @@ const server = app.listen(port, () => {
   console.log(`App running on port ${port}`);
 });
 
-// Export the app and server for testing
-module.exports = { app, server };
+// Export the app and server for testing (can be adjusted as needed)
+export { app, server };  // Use export instead of module.exports
