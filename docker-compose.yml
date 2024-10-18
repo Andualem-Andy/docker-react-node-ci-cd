@@ -9,9 +9,7 @@ services:
       - start
     container_name: back-end
     depends_on:
-      db:
-        condition: service_started
-        required: true
+      db:  # Keep this line, but remove 'required'
     networks:
       - node-network
     ports:
@@ -63,12 +61,8 @@ services:
       dockerfile: Dockerfile
     container_name: nginx
     depends_on:
-      back-end:
-        condition: service_started
-        required: true
-      front-end:
-        condition: service_started
-        required: true
+      back-end:  # Keep this line, but remove 'required'
+      front-end:  # Keep this line, but remove 'required'
     networks:
       - node-network
     ports:
