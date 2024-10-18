@@ -1,71 +1,84 @@
-version: '3.8'
-
 services:
   back-end:
-    build: 
+    build:
       context: ./node
+      dockerfile: Dockerfile
+    command:
+      - npm
+      - run
+      - start
     container_name: back-end
-    working_dir: /usr/src/app
-    networks: 
+    depends_on:
+      db:
+        condition: service_started
+        required: true
+    networks:
       - node-network
-    volumes: 
+    ports:
+      - "3000:3000"
+    tty: true
+    volumes:
       - ./node:/usr/src/app
       - /usr/src/app/node_modules
-    tty: true
-    ports: 
-      - "3000:3000"
-    command: npm run start
-    depends_on:
-      - db
-
-  front-end:
-    build: 
-      context: ./react
-    container_name: front-end
     working_dir: /usr/src/app
-    networks: 
-      - node-network
-    volumes: 
-      - ./react:/usr/src/app
-      - /usr/src/app/node_modules
-    tty: true
-    ports: 
-      - "5173:5173"
-    command: npm run dev
 
   db:
-    image: ${DB_IMAGE}  # Use the variable from .env
-    container_name: ${DB_CONTAINER_NAME}  # Use the variable from .env
-    restart: ${DB_RESTART}  # Use the variable from .env
-    tty: true
+    container_name: postgres_container
     environment:
-      POSTGRES_USER: ${DB_USER}  # Use the variable from .env
-      POSTGRES_PASSWORD: ${DB_PASSWORD}  # Use the variable from .env
-      POSTGRES_DB: ${DB_VOLUME}  # Use the variable from .env
-    volumes:
-      - ${DB_VOLUME}:/var/lib/postgresql/data  # Use named volume from .env
-    ports: 
-      - "${DB_PORT}:5432"  # Use the variable from .env
-    networks: 
+      POSTGRES_DB: postgres_container  # Set the database name here
+      POSTGRES_PASSWORD: "1234"
+      POSTGRES_USER: postgres
+    image: postgres:13
+    networks:
       - node-network
-
-  nginx:
-    build: 
-      context: ./nginx
-    container_name: nginx
+    ports:
+      - "5432:5432"  # Correctly map ports
     restart: always
     tty: true
-    ports: 
-      - "8000:80"
-    networks: 
-      - node-network
-    depends_on:
-      - back-end
-      - front-end
+    volumes:
+      - pgdata:/var/lib/postgresql/data  # Use the named volume here
 
-networks: 
+  front-end:
+    build:
+      context: ./react
+      dockerfile: Dockerfile
+    command:
+      - npm
+      - run
+      - dev
+    container_name: front-end
+    networks:
+      - node-network
+    ports:
+      - "5173:5173"
+    tty: true
+    volumes:
+      - ./react:/usr/src/app
+      - /usr/src/app/node_modules
+    working_dir: /usr/src/app
+
+  nginx:
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile
+    container_name: nginx
+    depends_on:
+      back-end:
+        condition: service_started
+        required: true
+      front-end:
+        condition: service_started
+        required: true
+    networks:
+      - node-network
+    ports:
+      - "8000:80"
+    restart: always
+    tty: true
+
+networks:
   node-network:
     driver: bridge
 
 volumes:
-  pgdata: {}  # Use named volume for PostgreSQL data storage
+  pgdata:  # Define the named volume for PostgreSQL data storage
