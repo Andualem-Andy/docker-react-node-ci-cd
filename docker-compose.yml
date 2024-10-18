@@ -1,10 +1,9 @@
-version: '3.8' # Specify the version of Docker Compose
+version: '3.8'
 
-services: 
-
+services:
   back-end:
     build: 
-      context: ./node  # Pointing to the node directory
+      context: ./node
     container_name: back-end
     working_dir: /usr/src/app
     networks: 
@@ -15,15 +14,13 @@ services:
     tty: true
     ports: 
       - "3000:3000"
-    environment:
-      - DATABASE_URL=postgresql://postgres:${DB_PASSWORD}@db:${DB_PORT}/${DB_NAME}
     command: npm run start
     depends_on:
       - db
 
   front-end:
     build: 
-      context: ./react  # Pointing to the react directory
+      context: ./react
     container_name: front-end
     working_dir: /usr/src/app
     networks: 
@@ -35,32 +32,26 @@ services:
     ports: 
       - "5173:5173"
     command: npm run dev
-    depends_on:
-      - back-end
 
   db:
-    image: postgres:13  # Using a specific Postgres image
-    container_name: postgres-db
+    image: postgres:13
+    container_name: postgres_container
     restart: always
-    environment: 
-      - POSTGRES_DB=${DB_NAME}
-      - POSTGRES_USER=${DB_USER}
-      - POSTGRES_PASSWORD=${DB_PASSWORD}
+    tty: true
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: your_password
+      POSTGRES_DB: your_db_name
     volumes:
-      - postgres_data:/var/lib/postgresql/data  # Named volume for persistence
+      - pgdata:/var/lib/postgresql/data
     ports: 
       - "5432:5432"
     networks: 
       - node-network
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
 
   nginx:
     build: 
-      context: ./nginx  # Pointing to the nginx directory
+      context: ./nginx
     container_name: nginx
     restart: always
     tty: true
@@ -69,12 +60,12 @@ services:
     networks: 
       - node-network
     depends_on:
-      - front-end
       - back-end
+      - front-end
   
 networks: 
   node-network:
     driver: bridge
 
 volumes:
-  postgres_data:
+  pgdata:
