@@ -43,7 +43,7 @@ services:
       POSTGRES_PASSWORD: ${DB_PASSWORD}
       POSTGRES_DB: postgres_container
     volumes:
-      - ${DB_VOLUME}
+      - pgdata:/var/lib/postgresql/data  # Use named volume here instead of variable
     ports: 
       - "${DB_PORT}:5432"
     networks: 
@@ -68,4 +68,4 @@ networks:
     driver: bridge
 
 volumes:
-  pgdata: 
+  pgdata:  # Define the named volume for PostgreSQL data storage
